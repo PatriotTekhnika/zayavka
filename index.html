@@ -91,11 +91,11 @@
         <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 mt-2">PATRIOT TEKHNIKA</h2>
     </div>
 
-    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Заявка на обслуговування генераторів</h1>
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Заявка на обслуговування генератор</h1>
     <p class="text-center text-gray-500 mb-8">Будь ласка, заповніть форму, щоб залишити заявку. Ми зв'яжемося з вами найближчим часом.</p>
     
     <!-- Форма для відправки на Formspree -->
-    <form action="https://formspree.io/f/mnngqrdy" method="POST" id="repairForm" class="space-y-6">
+    <form action="https://formspree.io/f/mnngqrdy" method="POST" id="repairForm" class="space-y-6" enctype="multipart/form-data">
         <div>
             <label for="requestType" class="block text-sm font-medium text-gray-700">Тип послуги</label>
             <div id="serviceOptions" class="flex space-x-2 mt-1">
@@ -205,10 +205,7 @@
             const formData = new FormData(form);
             const response = await fetch(form.action, {
                 method: form.method,
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
+                body: formData
             });
 
             if (response.ok) {
@@ -232,6 +229,7 @@
                     document.getElementById('requestType').value = firstOption.getAttribute('data-value');
                 }
             } else {
+                console.error('Помилка HTTP:', response.status, response.statusText);
                 const messageBox = document.createElement('div');
                 messageBox.className = 'message-box';
                 messageBox.innerHTML = `
@@ -242,6 +240,7 @@
                 document.body.appendChild(messageBox);
             }
         } catch (error) {
+            console.error('Помилка мережі:', error);
             const messageBox = document.createElement('div');
             messageBox.className = 'message-box';
             messageBox.innerHTML = `
