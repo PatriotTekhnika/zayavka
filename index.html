@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявка на ремонт генератора </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .form-container {
+            max-width: 600px;
+            padding: 2.5rem;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s ease-in-out;
+        }
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        .submit-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #2563eb;
+            color: #ffffff;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+        }
+        .submit-button:hover {
+            background-color: #1d4ed8;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        .service-option {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .service-option:hover {
+            background-color: #f3f4f6;
+        }
+        .service-option.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <!-- Логотип компанії -->
+    <div class="flex flex-col items-center justify-center mb-6">
+        <img src="https://images.prom.ua/6847696850_w640_h2048_pt2025_3.png?fresh=1&PIMAGE_ID=6847696850" alt="Логотип Patriot Tekhnnika" class="w-48 h-auto mb-2 shadow-lg">
+        <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 mt-2">PATRIOT TEKHNIKA</h2>
+    </div>
+
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Заявка на обслуговування генераторів</h1>
+    <p class="text-center text-gray-500 mb-8">Будь ласка, заповніть форму, щоб залишити заявку. Ми зв'яжемося з вами найближчим часом.</p>
+    
+    <!-- Форма для відправки на Formspree -->
+    <form action="https://formspree.io/f/mnngqrdy" method="POST" id="repairForm" class="space-y-6">
+        <div>
+            <label for="requestType" class="block text-sm font-medium text-gray-700">Тип послуги</label>
+            <div id="serviceOptions" class="flex space-x-2 mt-1">
+                <button type="button" class="service-option" data-value="Ремонт">Ремонт</button>
+                <button type="button" class="service-option" data-value="Технічне обслуговування (ТО)">Технічне обслуговування (ТО)</button>
+                <button type="button" class="service-option" data-value="Ремонт та Технічне обслуговування (ТО)">Ремонт та Технічне обслуговування (ТО)</button>
+            </div>
+            <input type="hidden" name="Тип послуги" id="requestType" required>
+        </div>
+        <div>
+            <label for="companyName" class="block text-sm font-medium text-gray-700">Назва компанії</label>
+            <input type="text" id="companyName" name="Назва компанії" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="contactPerson" class="block text-sm font-medium text-gray-700">Контактна особа (ПІБ)</label>
+            <input type="text" id="contactPerson" name="Контактна особа ПІБ" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700">Номер телефону</label>
+            <input type="tel" id="phone" name="Номер телефону" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="location" class="block text-sm font-medium text-gray-700">Місцезнаходження</label>
+            <input type="text" id="location" name="Місцезнаходження" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="generatorBrand" class="block text-sm font-medium text-gray-700">Марка генератора</label>
+            <input type="text" id="generatorBrand" name="Марка генератора" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="generatorPower" class="block text-sm font-medium text-gray-700">Потужність (кВт)</label>
+            <input type="number" id="generatorPower" name="Потужність кВт" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="engineBrand" class="block text-sm font-medium text-gray-700">Марка двигуна</label>
+            <input type="text" id="engineBrand" name="Марка двигуна" class="mt-1 form-input" required>
+        </div>
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="email" name="Email" class="mt-1 form-input">
+        </div>
+        <div>
+            <label for="photos" class="block text-sm font-medium text-gray-700 mb-1">Фотографії (необов'язково)</label>
+            <label for="photos" class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-200">
+                <span id="file-label-text">Вибрати файли</span>
+                <input type="file" id="photos" name="Фотографії" class="hidden" accept="image/*" multiple>
+            </label>
+        </div>
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Опис проблеми</label>
+            <textarea id="description" name="Опис проблеми" rows="4" class="mt-1 form-textarea" required></textarea>
+        </div>
+        
+        <button type="submit" class="submit-button">Відправити заявку</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const serviceOptions = document.getElementById('serviceOptions');
+        const requestTypeInput = document.getElementById('requestType');
+
+        serviceOptions.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.tagName === 'BUTTON') {
+                // Remove active class from all buttons
+                serviceOptions.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to the clicked button
+                target.classList.add('active');
+                
+                // Set the value of the hidden input field
+                requestTypeInput.value = target.getAttribute('data-value');
+            }
+        });
+
+        // Set initial value to the first option
+        const firstOption = serviceOptions.querySelector('button');
+        if (firstOption) {
+            firstOption.classList.add('active');
+            requestTypeInput.value = firstOption.getAttribute('data-value');
+        }
+
+        document.getElementById('photos').addEventListener('change', function(event) {
+            const fileCount = event.target.files.length;
+            const fileLabel = document.getElementById('file-label-text');
+            if (fileCount > 0) {
+                fileLabel.textContent = `Вибрано файлів: ${fileCount}`;
+            } else {
+                fileLabel.textContent = 'Вибрати файли';
+            }
+        });
+    });
+
+    document.getElementById('repairForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const submitButton = form.querySelector('.submit-button');
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Відправлення...';
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: form.method,
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const messageBox = document.createElement('div');
+                messageBox.className = 'message-box';
+                messageBox.innerHTML = `
+                    <p class="text-lg font-semibold mb-4 text-green-600">Вашу заявку успішно відправлено!</p>
+                    <p class="text-sm text-gray-600">Ми зв'яжемося з вами найближчим часом.</p>
+                    <button onclick="this.parentElement.remove()" class="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Закрити</button>
+                `;
+                document.body.appendChild(messageBox);
+                
+                form.reset();
+                
+                // Reset service options after form submission
+                const serviceOptions = document.getElementById('serviceOptions');
+                serviceOptions.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                const firstOption = serviceOptions.querySelector('button');
+                if (firstOption) {
+                    firstOption.classList.add('active');
+                    document.getElementById('requestType').value = firstOption.getAttribute('data-value');
+                }
+            } else {
+                const messageBox = document.createElement('div');
+                messageBox.className = 'message-box';
+                messageBox.innerHTML = `
+                    <p class="text-lg font-semibold mb-4 text-red-600">Помилка при надсиланні заявки.</p>
+                    <p class="text-sm text-gray-600">Будь ласка, спробуйте ще раз пізніше.</p>
+                    <button onclick="this.parentElement.remove()" class="mt-6 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Закрити</button>
+                `;
+                document.body.appendChild(messageBox);
+            }
+        } catch (error) {
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.innerHTML = `
+                <p class="text-lg font-semibold mb-4 text-red-600">Сталася помилка.</p>
+                <p class="text-sm text-gray-600">Перевірте ваше інтернет-з'єднання та спробуйте знову.</p>
+                <button onclick="this.parentElement.remove()" class="mt-6 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Закрити</button>
+            `;
+            document.body.appendChild(messageBox);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Відправити заявку';
+        }
+    });
+
+    document.getElementById('photos').addEventListener('change', function(event) {
+        const fileCount = event.target.files.length;
+        const fileLabel = document.getElementById('file-label-text');
+        if (fileCount > 0) {
+            fileLabel.textContent = `Вибрано файлів: ${fileCount}`;
+        } else {
+            fileLabel.textContent = 'Вибрати файли';
+        }
+    });
+</script>
+
+</body>
+</html>
