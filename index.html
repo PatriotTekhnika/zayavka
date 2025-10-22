@@ -70,6 +70,7 @@
             from { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
             to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
+        /* Стиль для опций (Тип услуги, Место, Оплата) */
         .service-option {
             flex: 1;
             padding: 1rem;
@@ -79,6 +80,9 @@
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 0.875rem; /* sm text */
+            line-height: 1.25rem;
+            min-width: fit-content; /* Позволяет кнопкам с длинным текстом не сжиматься */
         }
         .service-option:hover {
             background-color: #f3f4f6;
@@ -92,6 +96,18 @@
         }
         .service-option.active:hover {
             background-color: #2563eb;
+        }
+        /* Адаптивность для опций оплаты/местоположения */
+        .flex-wrap-sm {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem; /* gap-3 */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .flex-wrap-sm {
+                flex-wrap: nowrap;
+                gap: 0.75rem; /* space-x-3 */
+            }
         }
     </style>
 </head>
@@ -111,7 +127,7 @@
     <form action="https://formspree.io/f/mnngqrdy" method="POST" id="repairForm" class="space-y-6">
         <div>
             <label for="requestType" class="block text-sm font-medium text-gray-700 mb-2">Тип послуги</label>
-            <div id="serviceOptions" class="flex space-x-3 mt-1">
+            <div id="serviceOptions" class="flex flex-wrap-sm mt-1">
                 <button type="button" class="service-option" data-value="Ремонт">Ремонт</button>
                 <button type="button" class="service-option" data-value="Технічне обслуговування (ТО)">Технічне обслуговування (ТО)</button>
                 <button type="button" class="service-option" data-value="Ремонт та Технічне обслуговування (ТО)">Ремонт та ТО</button>
@@ -131,18 +147,17 @@
             <input type="tel" id="phone" name="Номер телефону" class="form-input" required>
         </div>
         
-        <!-- НОВЫЙ БЛОК: Выбор места обслуживания -->
+        <!-- Выбор места обслуживания -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Місце обслуговування</label>
             <div id="locationOptions" class="flex space-x-3 mt-1">
                 <button type="button" class="service-option" data-value="Сервісний центр">Сервісний центр</button>
                 <button type="button" class="service-option" data-value="Виїзд на місце">Виїзд на місце</button>
             </div>
-            <!-- Скрытое поле для типа места обслуживания -->
             <input type="hidden" name="Місце обслуговування (тип)" id="locationTypeInput" required>
         </div>
         
-        <!-- НОВОЕ ПОЛЕ: Информация о Сервисном центре -->
+        <!-- Информация о Сервисном центре -->
         <div id="serviceCenterInfo" class="mt-4 p-4 bg-blue-50 border border-blue-200 text-sm text-gray-700 rounded-lg hidden">
             <p class="font-semibold mb-1 text-blue-800">Контактна інформація Сервісного центру:</p>
             <p class="flex items-center">
@@ -151,14 +166,26 @@
             </p>
             <p class="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 2.154a1 1 0 01-.175.737l-2.074 2.074a1 1 0 00.187 1.34L9.12 15.63a1 1 0 001.34.187l2.074-2.074a1 1 0 01.737-.175l2.154.74A1 1 0 0118 16.847V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
-                <span class="font-medium">Телефон:</span> +380673141238 (Олександр)
+                <span class="font-medium">Телефон:</span> <a href="tel:+380673141238" class="text-blue-600 hover:text-blue-700">+380673141238 (Олександр)</a>
             </p>
         </div>
         
-        <!-- УСЛОВНОЕ ПОЛЕ: Адрес выезда (показывается только для "Виїзд на місце") -->
+        <!-- УСЛОВНОЕ ПОЛЕ: Адрес выезда -->
         <div id="addressField" class="hidden mt-6">
             <label for="locationAddress" class="block text-sm font-medium text-gray-700 mb-2">Адреса виїзду</label>
             <input type="text" id="locationAddress" name="Місце обслуговування (адреса)" class="form-input" placeholder="Введіть повну адресу (вулиця, будинок, місто)">
+        </div>
+
+        <!-- НОВЫЙ БЛОК: Выбор способа оплаты -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Спосіб оплати</label>
+            <div id="paymentOptions" class="flex flex-wrap-sm mt-1">
+                <button type="button" class="service-option" data-value="Безготівковий розрахунок">Безготівковий розрахунок</button>
+                <button type="button" class="service-option" data-value="Оплата карткою">Оплата карткою</button>
+                <button type="button" class="service-option" data-value="Готівка">Готівка</button>
+            </div>
+            <!-- Скрытое поле для типа оплаты -->
+            <input type="hidden" name="Спосіб оплати" id="paymentTypeInput" required>
         </div>
         <!-- КОНЕЦ НОВОГО БЛОКА -->
         
@@ -188,14 +215,19 @@
 </div>
 
 <script>
-    // Функция для сброса состояния местоположения (вынесена для использования в submit)
+    // --- Глобальные элементы и функции для взаимодействия с формой ---
     const locationOptions = document.getElementById('locationOptions');
     const locationTypeInput = document.getElementById('locationTypeInput');
     const addressField = document.getElementById('addressField');
     const locationAddressInput = document.getElementById('locationAddress');
     const locationButtons = locationOptions.querySelectorAll('button');
-    const serviceCenterInfo = document.getElementById('serviceCenterInfo'); // Получаем новый элемент
+    const serviceCenterInfo = document.getElementById('serviceCenterInfo');
     
+    // Элементы для оплаты
+    const paymentOptions = document.getElementById('paymentOptions');
+    const paymentTypeInput = document.getElementById('paymentTypeInput');
+    const paymentButtons = paymentOptions.querySelectorAll('button');
+
     /**
      * Обновляет состояние выбора места обслуживания, отображая нужные поля.
      * @param {HTMLElement} target - нажатая кнопка
@@ -223,38 +255,40 @@
         }
     }
 
+    /**
+     * Обновляет состояние выбора способа оплаты.
+     * @param {HTMLElement} target - нажатая кнопка
+     */
+    function updatePaymentSelection(target) {
+        paymentButtons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+        target.classList.add('active');
+        paymentTypeInput.value = target.getAttribute('data-value');
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         // --- 1. Логика для Типа услуги (Ремонт/ТО) ---
         const serviceOptions = document.getElementById('serviceOptions');
         const requestTypeInput = document.getElementById('requestType');
-
         const serviceButtons = serviceOptions.querySelectorAll('button');
 
         serviceOptions.addEventListener('click', (event) => {
             const target = event.target;
             if (target.tagName === 'BUTTON') {
-                // Remove active class from all buttons
-                serviceButtons.forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Add active class to the clicked button
+                serviceButtons.forEach(btn => btn.classList.remove('active'));
                 target.classList.add('active');
-                
-                // Set the value of the hidden input field
                 requestTypeInput.value = target.getAttribute('data-value');
             }
         });
 
-        // Set initial value to the first option
+        // Инициализация типа услуги
         if (serviceButtons.length > 0) {
             serviceButtons[0].classList.add('active');
             requestTypeInput.value = serviceButtons[0].getAttribute('data-value');
         }
 
         // --- 2. Логика для Места обслуживания (Сервісний центр/Виїзд на місце) ---
-        
         locationOptions.addEventListener('click', (event) => {
             const target = event.target;
             if (target.tagName === 'BUTTON') {
@@ -266,6 +300,20 @@
         const initialLocationOption = locationOptions.querySelector('button[data-value="Сервісний центр"]');
         if (initialLocationOption) {
             updateLocationSelection(initialLocationOption);
+        }
+
+        // --- 3. Логика для Способа оплаты (Безготівка/Карта/Готівка) ---
+        paymentOptions.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.tagName === 'BUTTON') {
+                updatePaymentSelection(target);
+            }
+        });
+
+        // Инициализация способа оплаты (по умолчанию "Безготівковий розрахунок")
+        const initialPaymentOption = paymentOptions.querySelector('button[data-value="Безготівковий розрахунок"]');
+        if (initialPaymentOption) {
+            updatePaymentSelection(initialPaymentOption);
         }
     });
 
@@ -300,22 +348,15 @@
                 
                 form.reset();
                 
-                // Reset service options after form submission
-                const serviceOptions = document.getElementById('serviceOptions');
-                const serviceButtons = serviceOptions.querySelectorAll('button');
-                serviceButtons.forEach(btn => btn.classList.remove('active'));
-                if (serviceButtons.length > 0) {
-                    serviceButtons[0].classList.add('active');
-                    document.getElementById('requestType').value = serviceButtons[0].getAttribute('data-value');
-                }
-                
-                // Reset location options after form submission to "Сервісний центр" (which calls updateLocationSelection)
-                const locationOptions = document.getElementById('locationOptions');
+                // Сброс всех опций к начальному состоянию
+                const serviceButtons = document.getElementById('serviceOptions').querySelectorAll('button');
+                if (serviceButtons.length > 0) updateServiceSelection(serviceButtons[0]);
+
                 const initialLocationOption = locationOptions.querySelector('button[data-value="Сервісний центр"]');
-                
-                if (initialLocationOption) {
-                    updateLocationSelection(initialLocationOption);
-                }
+                if (initialLocationOption) updateLocationSelection(initialLocationOption);
+
+                const initialPaymentOption = paymentOptions.querySelector('button[data-value="Безготівковий розрахунок"]');
+                if (initialPaymentOption) updatePaymentSelection(initialPaymentOption);
 
             } else {
                 const messageBox = document.createElement('div');
@@ -342,7 +383,14 @@
         }
     });
 
-
+    // Вспомогательная функция для сброса типа услуги
+    function updateServiceSelection(target) {
+        const serviceButtons = document.getElementById('serviceOptions').querySelectorAll('button');
+        const requestTypeInput = document.getElementById('requestType');
+        serviceButtons.forEach(btn => btn.classList.remove('active'));
+        target.classList.add('active');
+        requestTypeInput.value = target.getAttribute('data-value');
+    }
 </script>
 
 </body>
