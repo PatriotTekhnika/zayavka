@@ -130,10 +130,25 @@
             <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Номер телефону</label>
             <input type="tel" id="phone" name="Номер телефону" class="form-input" required>
         </div>
+        
+        <!-- НОВЫЙ БЛОК: Выбор места обслуживания -->
         <div>
-            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Місцезнаходження</label>
-            <input type="text" id="location" name="Місцезнаходження" class="form-input" required>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Місце обслуговування</label>
+            <div id="locationOptions" class="flex space-x-3 mt-1">
+                <button type="button" class="service-option" data-value="Сервісний центр">Сервісний центр</button>
+                <button type="button" class="service-option" data-value="Виїзд на місце">Виїзд на місце</button>
+            </div>
+            <!-- Скрытое поле для типа места обслуживания -->
+            <input type="hidden" name="Місце обслуговування (тип)" id="locationTypeInput" required>
         </div>
+
+        <!-- УСЛОВНОЕ ПОЛЕ: Адрес выезда (показывается только для "Виїзд на місце") -->
+        <div id="addressField" class="hidden mt-6">
+            <label for="locationAddress" class="block text-sm font-medium text-gray-700 mb-2">Адреса виїзду</label>
+            <input type="text" id="locationAddress" name="Місце обслуговування (адреса)" class="form-input" placeholder="Введіть повну адресу (вулиця, будинок, місто)">
+        </div>
+        <!-- КОНЕЦ НОВОГО БЛОКА -->
+        
         <div>
             <label for="generatorBrand" class="block text-sm font-medium text-gray-700 mb-2">Марка генератора</label>
             <input type="text" id="generatorBrand" name="Марка генератора" class="form-input" required>
@@ -161,14 +176,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. Логика для Типа услуги (Ремонт/ТО) ---
         const serviceOptions = document.getElementById('serviceOptions');
         const requestTypeInput = document.getElementById('requestType');
+
+        const serviceButtons = serviceOptions.querySelectorAll('button');
 
         serviceOptions.addEventListener('click', (event) => {
             const target = event.target;
             if (target.tagName === 'BUTTON') {
                 // Remove active class from all buttons
-                serviceOptions.querySelectorAll('button').forEach(btn => {
+                serviceButtons.forEach(btn => {
                     btn.classList.remove('active');
                 });
                 
@@ -181,10 +199,58 @@
         });
 
         // Set initial value to the first option
-        const firstOption = serviceOptions.querySelector('button');
-        if (firstOption) {
-            firstOption.classList.add('active');
-            requestTypeInput.value = firstOption.getAttribute('data-value');
+        if (serviceButtons.length > 0) {
+            serviceButtons[0].classList.add('active');
+            requestTypeInput.value = serviceButtons[0].getAttribute('data-value');
+        }
+
+        // --- 2. Логика для Места обслуживания (Сервісний центр/Виїзд на місце) ---
+        const locationOptions = document.getElementById('locationOptions');
+        const locationTypeInput = document.getElementById('locationTypeInput');
+        const addressField = document.getElementById('addressField');
+        const locationAddressInput = document.getElementById('locationAddress');
+        
+        const locationButtons = locationOptions.querySelectorAll('button');
+
+        /**
+         * Обновляет состояние выбора места обслуживания
+         * @param {HTMLElement} target - нажатая кнопка
+         */
+        function updateLocationSelection(target) {
+            // Удаляем активный класс со всех кнопок
+            locationButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Добавляем активный класс к нажатой кнопке
+            target.classList.add('active');
+
+            const selectedValue = target.getAttribute('data-value');
+            locationTypeInput.value = selectedValue;
+
+            // Показываем/скрываем поле адреса и делаем его обязательным/необязательным
+            if (selectedValue === 'Виїзд на місце') {
+                addressField.classList.remove('hidden');
+                locationAddressInput.setAttribute('required', 'required');
+                locationAddressInput.focus(); // Удобство: сразу переводим фокус на поле ввода адреса
+            } else {
+                addressField.classList.add('hidden');
+                locationAddressInput.removeAttribute('required');
+                locationAddressInput.value = ''; // Очищаем адрес при переключении
+            }
+        }
+
+        locationOptions.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.tagName === 'BUTTON') {
+                updateLocationSelection(target);
+            }
+        });
+
+        // Инициализация выбора места обслуживания (по умолчанию "Сервісний центр")
+        const initialLocationOption = locationOptions.querySelector('button[data-value="Сервісний центр"]');
+        if (initialLocationOption) {
+            updateLocationSelection(initialLocationOption);
         }
     });
 
@@ -221,12 +287,25 @@
                 
                 // Reset service options after form submission
                 const serviceOptions = document.getElementById('serviceOptions');
-                serviceOptions.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                const firstOption = serviceOptions.querySelector('button');
-                if (firstOption) {
-                    firstOption.classList.add('active');
-                    document.getElementById('requestType').value = firstOption.getAttribute('data-value');
+                const serviceButtons = serviceOptions.querySelectorAll('button');
+                serviceButtons.forEach(btn => btn.classList.remove('active'));
+                if (serviceButtons.length > 0) {
+                    serviceButtons[0].classList.add('active');
+                    document.getElementById('requestType').value = serviceButtons[0].getAttribute('data-value');
                 }
+                
+                // Reset location options after form submission
+                const locationOptions = document.getElementById('locationOptions');
+                const locationButtons = locationOptions.querySelectorAll('button');
+                locationButtons.forEach(btn => btn.classList.remove('active'));
+                const initialLocationOption = locationOptions.querySelector('button[data-value="Сервісний центр"]');
+                
+                if (initialLocationOption) {
+                    // Используем функцию, чтобы правильно сбросить состояние (скрыть адресное поле)
+                    const tempEvent = { target: initialLocationOption };
+                    updateLocationSelection(initialLocationOption);
+                }
+
             } else {
                 const messageBox = document.createElement('div');
                 messageBox.className = 'message-box';
@@ -251,6 +330,32 @@
             submitButton.textContent = 'Відправити заявку';
         }
     });
+
+    // Функция для сброса состояния местоположения (вынесена из DOMContentLoaded для использования в submit)
+    const locationOptions = document.getElementById('locationOptions');
+    const locationTypeInput = document.getElementById('locationTypeInput');
+    const addressField = document.getElementById('addressField');
+    const locationAddressInput = document.getElementById('locationAddress');
+    const locationButtons = locationOptions.querySelectorAll('button');
+
+    function updateLocationSelection(target) {
+        locationButtons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+        target.classList.add('active');
+        const selectedValue = target.getAttribute('data-value');
+        locationTypeInput.value = selectedValue;
+
+        if (selectedValue === 'Виїзд на місце') {
+            addressField.classList.remove('hidden');
+            locationAddressInput.setAttribute('required', 'required');
+        } else {
+            addressField.classList.add('hidden');
+            locationAddressInput.removeAttribute('required');
+            locationAddressInput.value = '';
+        }
+    }
+
 
 </script>
 
